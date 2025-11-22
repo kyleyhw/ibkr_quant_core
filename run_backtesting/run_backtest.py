@@ -11,7 +11,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from strategies.simple_demo import SimpleMACrossover
+from strategies.simple_ma_crossover import SimpleMACrossover
 from strategies.rsi_2_period import RSI2PeriodStrategy
 from strategies.bollinger_bands import BollingerBandsStrategy
 
