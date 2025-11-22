@@ -30,3 +30,21 @@ let $sma_{fast}$ be the sma with the shorter period and $sma_{slow}$ be the sma 
     $$ sma_{fast, t} < sma_{slow, t} \quad \text{and} \quad sma_{fast, t-1} \ge sma_{slow, t-1} $$
 
 the `basestrategy` then manages the position sizing, stop-loss, and take-profit levels once a trade is entered or exited.
+
+## strategy parameters
+
+the `simplemacrossover` strategy is configured by the following parameters:
+
+### fast ma period
+-   **definition**: the number of periods used to calculate the "fast" simple moving average.
+-   **significance**: a shorter period makes the ma more reactive to recent price changes, leading to more frequent and earlier signals but also more false signals (whipsaws).
+-   **impact**:
+    -   **shorter period**: higher sensitivity, more trades, potentially more whipsaws.
+    -   **longer period**: lower sensitivity, fewer trades, smoother signals.
+
+### slow ma period
+-   **definition**: the number of periods used to calculate the "slow" simple moving average.
+-   **significance**: a longer period makes the ma less reactive, providing a smoother trend indication. this ma generally represents the longer-term trend.
+-   **impact**:
+    -   **shorter period**: higher sensitivity, more trades.
+    -   **longer period**: lower sensitivity, fewer trades, better for identifying stronger trends.
