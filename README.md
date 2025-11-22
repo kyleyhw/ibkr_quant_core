@@ -59,7 +59,7 @@ ibkr_quant_core/
 ├── PROJECT_PLAN.md       # High-level project development plan
 ├── README.md             # This file: Project overview and high-level documentation
 ├── requirements.txt      # Project dependencies
-├── backtest_runners/
+├── run_backtesting/
 │   ├── run_backtest.py   # Script for single strategy deep-dive backtesting
 │   └── benchmark.py      # Script for multi-strategy comparison
 ├── data/                 # Historical CSV data (Ignored by Git)
@@ -109,7 +109,7 @@ To get started with the IBKR Open-Core Algorithmic Trading Bot, follow these ste
 5.  **Explore strategies:**
     Review the `strategies/simple_demo.py` for an example trading strategy. For proprietary strategies, refer to the `strategies/private/` submodule.
 6.  **Run backtests:**
-    Utilize the scripts in the `backtest_runners/` directory to evaluate strategy performance.
+    Utilize the scripts in the `run_backtesting/` directory to evaluate strategy performance.
 
 ## Core Architectural Rules
 

@@ -13,8 +13,8 @@ This document outlines the planned phases and tasks for developing the IBKR Open
 ## Phase 2: Base Strategy & Backtesting Framework
 7.  [completed] Develop the parent `base_strategy.py` to handle position sizing and stop-loss logic.
 8.  [completed] Create a public `simple_demo.py` strategy (e.g., a moving average crossover) inheriting from the base strategy.
-9.  [completed] Implement the backtesting script `backtest_runners/run_backtest.py` to test a single strategy.
+9.  [completed] Implement the backtesting script `run_backtesting/run_backtest.py` to test a single strategy.
 ...
-18. [pending] Implement the strategy benchmarking script `backtest_runners/benchmark.py`.
+18. [pending] Implement the strategy benchmarking script `run_backtesting/benchmark.py`.
 19. [pending] Integrate the `Notifier` class for alerts.
 20. [pending] Complete all documentation.

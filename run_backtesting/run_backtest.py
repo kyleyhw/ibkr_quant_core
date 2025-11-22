@@ -6,7 +6,7 @@ import sys
 import os
 
 # Add the project root to the Python path to allow for absolute imports when running directly
-# This is generally not needed when running as a module (e.g., `python -m backtest_runners.run_backtest`)
+# This is generally not needed when running as a module (e.g., `python -m run_backtesting.run_backtest`)
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
@@ -17,7 +17,7 @@ def get_strategy_class(strategy_name: str):
     """
     Dynamically imports and returns a strategy class from a given name.
     """
-    if strategy_name == "simple_m_a_crossover":
+    if strategy_name == "simple-ma-crossover":
         return SimpleMACrossover
     else:
         raise ValueError(f"Unknown strategy: {strategy_name}")
@@ -30,7 +30,7 @@ def main():
     parser.add_argument(
         '--strategy',
         type=str,
-        default='simple_m_a_crossover',
+        default='simple-ma-crossover',
         help='The name of the strategy class to test.'
     )
     parser.add_argument(
