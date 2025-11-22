@@ -3,12 +3,12 @@
 This document outlines the planned phases and tasks for developing the IBKR Open-Core Algorithmic Trading Bot.
 
 ## Phase 1: Core Infrastructure Setup
-1.  [pending] Verify and finalize the project directory structure.
-2.  [pending] Populate `requirements.txt` with all necessary libraries.
-3.  [pending] Implement the IBKR connection logic in `src/connection.py`.
-4.  [pending] Implement standardized data fetching in `src/data_loader.py`.
-5.  [pending] Create the base `Notifier` class in `src/notifications.py`.
-6.  [pending] Set up initial documentation, including `README.md` and the `/docs` folder structure.
+1.  [completed] Verify and finalize the project directory structure.
+2.  [completed] Populate `requirements.txt` with all necessary libraries.
+3.  [completed] Implement the IBKR connection logic in `src/connection.py`.
+4.  [completed] Implement standardized data fetching in `src/data_loader.py`.
+5.  [completed] Create the base `Notifier` class in `src/notifications.py`.
+6.  [completed] Set up initial documentation, including `README.md` and the `/docs` folder structure.
 
 ## Phase 2: Base Strategy & Backtesting Framework
 7.  [pending] Develop the parent `base_strategy.py` to handle position sizing and stop-loss logic.
