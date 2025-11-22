@@ -22,12 +22,30 @@ For a detailed roadmap of the project's development phases and tasks, refer to t
 
 *   **[Project Plan](./PROJECT_PLAN.md)**
 
-## Project Documentation
+## Project Plan
 
-For a detailed understanding of the project's architecture, logic, and design choices, please refer to the documentation hub.
+For a detailed roadmap of the project's development phases and tasks, refer to the project plan:
 
-*   **[Project Documentation Hub](./docs/00_Project_Overview.md)**
-    *   **[Interpreting Metrics](./docs/04_Interpreting_Metrics.md)**
+*   **[Project Plan](./PROJECT_PLAN.md)**
+
+## Project Documentation Hub
+
+This documentation provides a detailed overview of the IBKR Open-Core Algorithmic Trading Bot. Each section covers a specific part of the system's architecture and logic.
+
+### Documentation Index
+
+1.  **[core infrastructure](./docs/core_infrastructure.md)**
+    -   Explains the foundational modules for connecting to Interactive Brokers, loading data, and sending notifications.
+
+2.  **[strategy development](./docs/strategy_development.md)**
+    -   Details the base strategy class, risk management framework, and the implementation of a simple example strategy.
+        *   **[simple ma crossover formulation](./docs/formulations/simple_ma_crossover_formulation.md)**: Mathematical formulation for the Simple MA Crossover strategy.
+
+3.  **[backtesting and reporting](./docs/backtesting_and_reporting.md)**
+    -   Covers the process of running backtests, generating performance reports, and interpreting the results.
+
+4.  **[interpreting metrics](./docs/interpreting_metrics.md)**
+    -   Provides detailed explanations of the various performance metrics found in backtest reports.
 
 ## Directory Structure
 
@@ -46,11 +64,13 @@ ibkr_quant_core/
 │   └── benchmark.py      # Script for multi-strategy comparison
 ├── data/                 # Historical CSV data (Ignored by Git)
 ├── docs/                 # Detailed project documentation
-│   ├── 00_Project_Overview.md
-│   ├── 01_Core_Infrastructure.md
-│   ├── 02_Strategy_Development.md
-│   ├── 03_Backtesting_and_Reporting.md
-│   └── 04_Interpreting_Metrics.md
+│   ├── documentation_hub.md
+│   ├── core_infrastructure.md
+│   ├── strategy_development.md
+│   ├── backtesting_and_reporting.md
+│   ├── interpreting_metrics.md
+│   └── formulations/
+│       └── simple_ma_crossover_formulation.md
 ├── logs/                 # Execution logs (Ignored by Git)
 ├── models/               # Trained ML models (Ignored by Git)
 ├── reports/              # Backtest reports and plots (Ignored by Git)
