@@ -33,9 +33,9 @@ This documentation provides a detailed overview of the IBKR Open-Core Algorithmi
 
 2.  **[strategy development](./docs/strategy_development.md)**
     -   details the base strategy class, risk management framework, and the implementation of example strategies.
-        -   **simple ma crossover**: a strategy based on the crossover of two simple moving averages.
-        -   **rsi 2-period**: a strategy based on overbought/oversold signals from a 2-period relative strength index.
-        -   **bollinger bands**: a strategy utilizing volatility bands around a moving average for entry and exit signals.
+        -   **[simple ma crossover](./docs/strategies/simple_ma_crossover_formulation.md)**: a strategy based on the crossover of two simple moving averages.
+        -   **[rsi 2-period](./docs/strategies/rsi_2_period_formulation.md)**: a strategy based on overbought/oversold signals from a 2-period relative strength index.
+        -   **[bollinger bands](./docs/strategies/bollinger_bands_formulation.md)**: a strategy utilizing volatility bands around a moving average for entry and exit signals.
 
 
 3.  **[backtesting and reporting](./run_backtesting/backtesting_and_reporting.md)**
