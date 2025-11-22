@@ -96,12 +96,14 @@ def main():
     print("\nGenerating plot and report...")
     
     timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-    plot_filename_rel = f"backtest_{args.strategy}_{timestamp}.html"
-    plot_filename_abs = os.path.join('reports', plot_filename_rel)
+    plot_filename_rel_html = f"backtest_{args.strategy}_{timestamp}.html"
+    plot_filename_abs_html = os.path.join('reports', plot_filename_rel_html)
+
     report_filename = os.path.join('reports', f"report_{args.strategy}_{timestamp}.md")
 
-    bt.plot(filename=plot_filename_abs, open_browser=False)
-    print(f"Plot saved to {plot_filename_abs}")
+    # Generate the interactive HTML plot
+    bt.plot(filename=plot_filename_abs_html, open_browser=False)
+    print(f"Interactive plot saved to {plot_filename_abs_html}")
 
     with open(report_filename, 'w') as f:
         f.write(f"# Backtest Report: {args.strategy}\n\n")
@@ -121,7 +123,7 @@ def main():
         f.write("\n\n")
 
         f.write("## Equity Curve & Trades\n")
-        f.write(f"[View interactive plot]({plot_filename_rel})\n")
+        f.write(f"[View interactive plot]({plot_filename_rel_html})\n")
 
     print(f"Detailed report saved to {report_filename}")
 

@@ -17,5 +17,5 @@ This documentation provides a detailed overview of the ibkr open-core algorithmi
 -   **[backtesting and reporting](./backtesting_and_reporting.md)**
     -   covers the process of running backtests, generating performance reports, and interpreting the results.
 
--   **[interpreting metrics](./interpreting_metrics.md)**
+-   **[interpreting report](./interpreting_report.md)**
     -   provides detailed explanations of the various performance metrics found in backtest reports.

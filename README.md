@@ -44,7 +44,7 @@ This documentation provides a detailed overview of the IBKR Open-Core Algorithmi
 3.  **[backtesting and reporting](./docs/backtesting_and_reporting.md)**
     -   Covers the process of running backtests, generating performance reports, and interpreting the results.
 
-4.  **[interpreting metrics](./docs/interpreting_metrics.md)**
+-   **[interpreting report](./docs/interpreting_report.md)**
     -   Provides detailed explanations of the various performance metrics found in backtest reports.
 
 ## Directory Structure
