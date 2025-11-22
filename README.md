@@ -21,6 +21,7 @@ The system leverages the following key technologies:
 For a detailed understanding of the project's architecture, logic, and design choices, please refer to the documentation hub.
 
 *   **[Project Documentation Hub](./docs/00_Project_Overview.md)**
+    *   **[Interpreting Metrics](./docs/04_Interpreting_Metrics.md)**
 
 ## Directory Structure
 
