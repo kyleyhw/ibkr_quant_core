@@ -69,3 +69,14 @@ class BollingerBandsStrategy(BaseStrategy):
                 self.position.close()
 
         super().next()
+
+    def get_params(self) -> dict:
+        """
+        Returns a dictionary of the strategy's parameters, including inherited ones.
+        """
+        params = super().get_params()
+        params.update({
+            "bb_period": self.bb_period,
+            "bb_std_dev": self.bb_std_dev,
+        })
+        return params

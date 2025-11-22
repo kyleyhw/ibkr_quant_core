@@ -81,3 +81,15 @@ class RSI2PeriodStrategy(BaseStrategy):
                 self.position.close()
 
         super().next()
+
+    def get_params(self) -> dict:
+        """
+        Returns a dictionary of the strategy's parameters, including inherited ones.
+        """
+        params = super().get_params()
+        params.update({
+            "rsi_period": self.rsi_period,
+            "oversold_threshold": self.oversold_threshold,
+            "overbought_threshold": self.overbought_threshold,
+        })
+        return params

@@ -22,12 +22,6 @@ For a detailed roadmap of the project's development phases and tasks, refer to t
 
 *   **[Project Plan](./PROJECT_PLAN.md)**
 
-## Project Plan
-
-For a detailed roadmap of the project's development phases and tasks, refer to the project plan:
-
-*   **[Project Plan](./PROJECT_PLAN.md)**
-
 ## Project Documentation Hub
 
 This documentation provides a detailed overview of the IBKR Open-Core Algorithmic Trading Bot. Each section covers a specific part of the system's architecture and logic.
@@ -39,13 +33,21 @@ This documentation provides a detailed overview of the IBKR Open-Core Algorithmi
 
 2.  **[strategy development](./docs/strategy_development.md)**
     -   details the base strategy class, risk management framework, and the implementation of a simple example strategy.
-        *   **[simple ma crossover formulation](./docs/formulations/simple_ma_crossover_formulation.md)**: mathematical formulation for the simple ma crossover strategy.
+        *   **[simple ma crossover formulation](./docs/strategies/simple_ma_crossover.md)**: mathematical formulation for the simple ma crossover strategy.
+        *   **[rsi 2-period strategy](./strategies/rsi_2_period.py)**: implementation of the rsi 2-period strategy.
+        *   **[rsi 2-period formulation](./docs/strategies/rsi_2_period.md)**: mathematical formulation for the rsi 2-period strategy.
+        *   **[bollinger bands strategy](./strategies/bollinger_bands.py)**: implementation of the bollinger bands strategy.
+        *   **[bollinger bands formulation](./docs/strategies/bollinger_bands.md)**: mathematical formulation for the bollinger bands strategy.
 
-3.  **[backtesting and reporting](./docs/backtesting_and_reporting.md)**
+3.  **[backtesting and reporting](./run_backtesting/backtesting_and_reporting.md)**
     -   covers the process of running backtests, generating performance reports, and interpreting the results.
 
 -   **[interpreting report](./docs/interpreting_report.md)**
     -   provides detailed explanations of the various performance metrics found in backtest reports.
+
+## Sample Backtest Reports
+
+View the generated backtest reports and plots in the [reports/](./reports/) directory. These reports demonstrate the performance of various strategies against historical data.
 
 ## Directory Structure
 

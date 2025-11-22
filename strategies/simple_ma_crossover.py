@@ -70,3 +70,14 @@ class SimpleMACrossover(BaseStrategy):
         # It's important to call the parent's next() method to ensure its
         # logic (like take-profit) is also executed.
         super().next()
+
+    def get_params(self) -> dict:
+        """
+        Returns a dictionary of the strategy's parameters, including inherited ones.
+        """
+        params = super().get_params()
+        params.update({
+            "fast_ma_period": self.fast_ma_period,
+            "slow_ma_period": self.slow_ma_period,
+        })
+        return params

@@ -85,12 +85,21 @@ class BaseStrategy(TrailingStrategy):
             float: The fraction of equity to allocate to the trade (e.g., 0.9 for 90%).
                    The backtesting library uses this to determine share count.
         """
-        # The library requires a size from 0-1 (fraction of available cash/equity).
-        # We cap the risk at a max of 99% of equity to be safe.
-        # Let's use 10% of our equity per trade as a simple sizing rule for now.
+    # This will be refined later if needed.
         return 0.1
 
+    def get_params(self) -> dict:
+        """
+        Returns a dictionary of the base strategy's parameters.
+        """
+        return {
+            "risk_percent": self.risk_percent,
+            "stop_loss_pct": self.stop_loss_pct,
+            "take_profit_pct": self.take_profit_pct,
+        }
+
     # --- Wrapper methods for buying and selling to include our position size ---
+
     
     def buy_instrument(self):
         """
