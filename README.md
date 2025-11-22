@@ -43,7 +43,6 @@ ibkr_trading_bot/
 ├── backtesting/
 │   ├── run_backtest.py    # Script for single strategy deep-dive backtesting
 │   └── benchmark.py       # Script for multi-strategy comparison and benchmarking
-└── GEMINI.md              # Gemini's context and instructions for this project
 ```
 
 ## Getting Started
@@ -68,18 +67,43 @@ To get started with the IBKR Open-Core Algorithmic Trading Bot, follow these ste
     Review the `strategies/simple_demo.py` for an example trading strategy. For proprietary strategies, refer to the `strategies/private/` submodule.
 6.  **Run backtests:**
     Utilize the scripts in the `backtesting/` directory to evaluate strategy performance.
-7.  **Develop new features:**
-    Adhere to the core architectural rules and development guidelines outlined in the `GEMINI.md` file.
 
-## Core Architectural Rules & Development Guidelines
+## Core Architectural Rules
 
-Please refer to the `GEMINI.md` file for detailed information on:
+### 1. The "Open Core" Git Workflow
+Public strategies reside in `strategies/`.
 
-*   The "Open Core" Git Workflow
-*   Machine Learning Workflow (Prevention of Skew)
-*   Execution & Safety (The "Fat Finger" Layer)
-*   Notifications
-*   Type Hinting and Documentation standards
-*   Backtesting and Benchmarking assumptions
+Proprietary strategies reside in `strategies/private/` (a Git Submodule).
 
+Imports must be robust to handle the absence of the private submodule:
+```python
+try:
+    from strategies.private import MyPrivateStrategy
+except ImportError:
+    MyPrivateStrategy = None # Or handle appropriately
 ```
+**NEVER** output code that hardcodes credentials. Use `.env` for all secrets.
+
+### 2. Machine Learning Workflow (Prevention of Skew)
+- **Training:** Happens in `research/`. Saves models to `models/`.
+- **Inference:** Happens in `strategies/`. Loads models from `models/`.
+- **Feature Consistency:** Both Training and Inference **MUST** import features (RSI, SMA, etc.) from `src/feature_engineering.py`. Never rewrite indicator logic inside a strategy file. This is critical to prevent training-serving skew.
+
+### 3. Execution & Safety (The "Fat Finger" Layer)
+- **Position Sizing:** Calculated dynamically in `base_strategy.py` based on a risk percentage of equity (e.g., 1%).
+- **Hard Limits:** `src/execution.py` must enforce hard safety limits, such as:
+  - `MAX_SHARES_PER_ORDER` (e.g., 100)
+  - `MAX_DOLLAR_VALUE` (e.g., $5,000)
+- If a strategy requests an order that exceeds these limits, the system **MUST** raise an `Exception` and send a critical notification.
+
+### 4. Notifications
+- The system must define a `Notifier` class in `src/notifications.py`.
+- **Triggers:**
+  - **Critical:** Connection loss, Order Rejection, "Fat Finger" block.
+  - **Info:** Trade execution, Daily P&L summary.
+
+## Development Guidelines
+- **Type Hinting:** All functions must have Python type hints.
+- **Documentation:** Docstrings should focus on **"Why"** a component exists, not just "What" it does.
+- **Backtesting:** When creating a backtest, assume a realistic **0.005 (0.5%)** for commission and slippage to avoid over-optimistic results.
+- **Benchmarking:** When comparing strategies, use the **Sharpe Ratio** as the primary metric, not total return.
