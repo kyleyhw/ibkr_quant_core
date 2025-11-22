@@ -17,7 +17,7 @@ The project strictly follows this structure. Do not suggest code that violates t
 
 ```text
 ibkr_trading_bot/
-├── readme.md              # Readme file
+├── README.md              # Readme file
 ├── docs/                  # Documentation
 ├── data/                  # Historical CSVs (GitIgnored)
 ├── models/                # Trained XGBoost/ML models (GitIgnored)
