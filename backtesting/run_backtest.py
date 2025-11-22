@@ -60,8 +60,12 @@ def main():
         print("Please run the data loader or provide a valid path.")
         return
 
-    # Load the data, handling potential timezone issues
-    data = pd.read_csv(args.data, index_col='date', parse_dates=True)
+    # Load the data
+    data = pd.read_csv(args.data)
+    # Convert 'date' column to datetime and set as index
+    data['date'] = pd.to_datetime(data['date'], utc=True)
+    data = data.set_index('date')
+    # Make timezone-naive if it became aware during parsing
     if data.index.tz is not None:
         data.index = data.index.tz_localize(None)
     
@@ -71,18 +75,10 @@ def main():
     print("Data loaded successfully:")
     print(data.head())
 
-    # --- 2. Pre-calculate Indicators ---
-    print("\nPre-calculating indicators...")
-    import pandas_ta as ta
-    
+    # --- 2. Select Strategy ---
+    print(f"\nSelecting strategy: {args.strategy}...")
     StrategyClass = get_strategy_class(args.strategy)
     
-    data.ta.sma(length=StrategyClass.fast_ma_period, append=True)
-    data.ta.sma(length=StrategyClass.slow_ma_period, append=True)
-    
-    print("Indicators calculated and added to data:")
-    print(data.tail())
-
     # --- 3. Run Backtest ---
     print(f"\nRunning backtest with initial cash ${args.cash:,.2f} and {args.commission:.3%} commission...")
     bt = Backtest(
