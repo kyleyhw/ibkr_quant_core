@@ -18,7 +18,7 @@ This document outlines the planned phases and tasks for developing the IBKR Open
 
 ## Phase 3: Feature Engineering & ML Model Training
 11. [pending] Create a script in research/ for model training.
-12. [pending] Create a Jupyter notebook in `research/` for model training.
+12. [pending] Create a script in research/ for model training.
 13. [pending] Save the trained model artifact to the `models/` directory.
 
 ## Phase 4: Machine Learning Strategy Implementation
