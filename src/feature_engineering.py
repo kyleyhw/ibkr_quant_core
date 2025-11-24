@@ -1,5 +1,5 @@
 import pandas as pd
-import pandas_ta as ta
+import talib
 from typing import List, Optional
 
 class FeatureEngineer:
@@ -26,47 +26,44 @@ class FeatureEngineer:
         
         # --- Trend Indicators ---
         # Simple Moving Averages
-        df['SMA_50'] = ta.sma(df['close'], length=50)
-        df['SMA_200'] = ta.sma(df['close'], length=200)
+        df['SMA_50'] = talib.SMA(df['close'].values, timeperiod=50)
+        df['SMA_200'] = talib.SMA(df['close'].values, timeperiod=200)
         
         # Exponential Moving Averages
-        df['EMA_20'] = ta.ema(df['close'], length=20)
+        df['EMA_20'] = talib.EMA(df['close'].values, timeperiod=20)
         
         # MACD (12, 26, 9)
-        macd = ta.macd(df['close'], fast=12, slow=26, signal=9)
-        # pandas_ta returns columns like MACD_12_26_9, MACDh_12_26_9, MACDs_12_26_9
-        # We rename them for consistency
-        if macd is not None:
-            df = pd.concat([df, macd], axis=1)
-            # Standardize names if needed, but default pandas_ta names are usually fine:
-            # MACD_12_26_9 (Line), MACDh_12_26_9 (Histogram), MACDs_12_26_9 (Signal)
+        macd, macdsignal, macdhist = talib.MACD(df['close'].values, fastperiod=12, slowperiod=26, signalperiod=9)
+        df['MACD_12_26_9'] = macd
+        df['MACDS_12_26_9'] = macdsignal
+        df['MACDH_12_26_9'] = macdhist
 
         # --- Momentum Indicators ---
         # RSI (14)
-        df['RSI_14'] = ta.rsi(df['close'], length=14)
+        df['RSI_14'] = talib.RSI(df['close'].values, timeperiod=14)
         
         # Stochastic Oscillator
-        stoch = ta.stoch(df['high'], df['low'], df['close'])
-        if stoch is not None:
-            df = pd.concat([df, stoch], axis=1)
-            # STOCHk_14_3_3, STOCHd_14_3_3
+        slowk, slowd = talib.STOCH(df['high'].values, df['low'].values, df['close'].values, fastk_period=14, slowk_period=3, slowd_period=3)
+        df['STOCHk_14_3_3'] = slowk
+        df['STOCHd_14_3_3'] = slowd
 
         # --- Volatility Indicators ---
         # Bollinger Bands (20, 2)
-        bbands = ta.bbands(df['close'], length=20, std=2)
-        if bbands is not None:
-            df = pd.concat([df, bbands], axis=1)
-            # BBL_20_2.0, BBM_20_2.0, BBU_20_2.0
+        upper, middle, lower = talib.BBANDS(df['close'].values, timeperiod=20, nbdevup=2, nbdevdn=2)
+        df['BBL_20_2.0'] = lower
+        df['BBM_20_2.0'] = middle
+        df['BBU_20_2.0'] = upper
             
         # ATR (14)
-        df['ATR_14'] = ta.atr(df['high'], df['low'], df['close'], length=14)
+        df['ATR_14'] = talib.ATR(df['high'].values, df['low'].values, df['close'].values, timeperiod=14)
 
         # --- Volume Indicators ---
         # VWAP - Note: VWAP requires a datetime index to reset correctly, 
-        # but pandas_ta handles it if the index is datetime.
+        # but talib does not have a direct VWAP implementation.
         # For simplicity in standard OHLCV without intraday resets, we might skip or use a rolling VWAP approximation
         # df['VWAP'] = ta.vwap(df['high'], df['low'], df['close'], df['volume'])
 
+        return df
         return df
 
     def get_required_lookback(self) -> int:
