@@ -112,27 +112,36 @@ def main():
     print("\nBacktest Results:")
     print(stats)
 
-    # --- 4. Generate Plot and Report ---
+    # --- 4. Determine Output Path and Generate Report ---
     print("\nGenerating plot and report...")
+
+    # Define private strategies to route their reports to the submodule
+    PRIVATE_STRATEGIES = ["ml-regime", "hmm-regime", "pairs-trading"]
+    
+    if args.strategy in PRIVATE_STRATEGIES:
+        output_dir = os.path.join('strategies', 'private', 'reports')
+    else:
+        output_dir = 'reports'
+        
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
     
     timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-    plot_filename_rel_html = f"backtest_{args.strategy}_{timestamp}.html"
-    plot_filename_abs_html = os.path.join('reports', plot_filename_rel_html)
-
-    report_filename = os.path.join('reports', f"report_{args.strategy}_{timestamp}.md")
+    plot_filename_rel = f"backtest_{args.strategy}_{timestamp}.html"
+    plot_filename_abs = os.path.join(output_dir, plot_filename_rel)
+    report_filename = os.path.join(output_dir, f"report_{args.strategy}_{timestamp}.md")
 
     # Generate the interactive HTML plot
-    bt.plot(filename=plot_filename_abs_html, open_browser=False)
-    print(f"Interactive plot saved to {plot_filename_abs_html}")
+    bt.plot(filename=plot_filename_abs, open_browser=False)
+    print(f"Interactive plot saved to {plot_filename_abs}")
 
     with open(report_filename, 'w') as f:
         f.write(f"# Backtest Report: {args.strategy}\n\n")
         f.write(f"**Run Date:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
         f.write("## Strategy Parameters\n")
-        strategy_params_dict = stats['_strategy'].get_params()
-        
-        for param, value in strategy_params_dict.items():
+        strategy_params = stats._strategy._params
+        for param, value in strategy_params.items():
             # Format percentages
             if "percent" in param.lower() and isinstance(value, (int, float)):
                 f.write(f"- **{param.replace('_', ' ').title()}:** {value:.2%}\n")
@@ -148,7 +157,7 @@ def main():
         f.write("\n\n")
 
         f.write("## Equity Curve & Trades\n")
-        f.write(f"[View interactive plot]({plot_filename_rel_html})\n")
+        f.write(f"[View interactive plot]({plot_filename_rel})\n")
 
     print(f"Detailed report saved to {report_filename}")
 
