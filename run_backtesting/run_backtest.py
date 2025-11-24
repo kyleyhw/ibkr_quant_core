@@ -70,6 +70,13 @@ def main():
         help='The name of the underlying strategy for a meta-strategy.'
     )
     parser.add_argument(
+        '--strategy-type',
+        type=str,
+        default='mean-reversion',
+        choices=['mean-reversion', 'trend'],
+        help='The type of the underlying strategy (for meta-strategies).'
+    )
+    parser.add_argument(
         '--data',
         type=str,
         default='data/SPY_1hour_1year.csv',
@@ -110,13 +117,14 @@ def main():
     print(f"\nSelecting strategy: {args.strategy}...")
     StrategyClass = get_strategy_class(args.strategy)
 
-    # If it's a meta-strategy, set the underlying strategy
+    # If it's a meta-strategy, set its parameters
     if args.strategy == 'meta-regime-filter':
         if not args.underlying:
             raise ValueError("The 'meta-regime-filter' strategy requires the --underlying argument.")
         UnderlyingStrategyClass = get_strategy_class(args.underlying)
         StrategyClass.underlying_strategy = UnderlyingStrategyClass
-        print(f"   with Underlying Strategy: {args.underlying}")
+        StrategyClass.strategy_type = args.strategy_type
+        print(f"   with Underlying Strategy: {args.underlying} (Type: {args.strategy_type})")
     
     # --- 3. Run Backtest ---
     print(f"\nRunning backtest with initial cash ${args.cash:,.2f} and IBKR Tiered commission model...")
