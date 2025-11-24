@@ -28,64 +28,38 @@ class BaseStrategy(TrailingStrategy):
     # The percentage above the entry price to set the take-profit level.
     # If set to 0, no take-profit limit is used.
     take_profit_pct: float = 0.05  # e.g., 5% take-profit
-
+    
     def init(self):
         """
-        Initializes the strategy. This method is called by the backtesting
-        framework once before the strategy begins.
-
-        We use this to set up the trailing stop-loss mechanism.
+        Initializes the strategy.
         """
-        # Call the parent class's init method
         super().init()
-        # Set the trailing stop-loss percentage from our parameters
         self.set_trailing_sl(self.stop_loss_pct)
-        # Initialize entry price storage
         self.entry_price = None
+        self.size_factor = 1.0 # Default sizing factor
 
     def next(self):
         """
-        The main strategy logic loop, called for each data point (bar).
-
-        This base implementation contains the logic to manage an open trade's
-        exit conditions (take-profit). Entry logic should be implemented
-        in the child strategy's `next()` method, which should also call
-        `super().next()` to retain this exit logic.
+        Main strategy logic loop.
         """
-        # --- Take-Profit Logic ---
-        # If a take-profit is defined and we have an open position AND we have recorded an entry price
         if self.take_profit_pct > 0 and self.position and self.entry_price is not None:
-            # For long positions
             if self.position.is_long:
                 take_profit_price = self.entry_price * (1 + self.take_profit_pct)
-                # If the current price crosses the take-profit level, close the position
                 if self.data.Close[-1] >= take_profit_price:
                     self.position.close()
-                    self.entry_price = None # Clear entry price after closing
-            # For short positions
+                    self.entry_price = None
             elif self.position.is_short:
                 take_profit_price = self.entry_price * (1 - self.take_profit_pct)
-                # If the current price crosses the take-profit level, close the position
                 if self.data.Close[-1] <= take_profit_price:
                     self.position.close()
-                    self.entry_price = None # Clear entry price after closing
+                    self.entry_price = None
         
-        # The parent class (TrailingStrategy) handles the trailing stop-loss automatically.
         super().next()
 
     def calculate_position_size(self) -> float:
         """
-        Calculates the position size as a fraction of total equity, based on the
-        defined `risk_percent`.
-
-        This standardizes position sizing across all strategies that inherit
-        from this base class.
-
-        Returns:
-            float: The fraction of equity to allocate to the trade (e.g., 0.9 for 90%).
-                   The backtesting library uses this to determine share count.
+        Calculates the base position size.
         """
-    # This will be refined later if needed.
         return 0.1
 
     def get_params(self) -> dict:
@@ -98,21 +72,18 @@ class BaseStrategy(TrailingStrategy):
             "take_profit_pct": self.take_profit_pct,
         }
 
-    # --- Wrapper methods for buying and selling to include our position size ---
-
-    
     def buy_instrument(self):
         """
-        Executes a long entry with the calculated position size.
+        Executes a long entry with the calculated and adjusted position size.
         """
-        size = self.calculate_position_size()
+        size = self.calculate_position_size() * self.size_factor
         self.buy(size=size)
-        self.entry_price = self.data.Close[-1] # Store entry price upon buying
+        self.entry_price = self.data.Close[-1]
 
     def sell_instrument(self):
         """
-        Executes a short entry with the calculated position size.
+        Executes a short entry with the calculated and adjusted position size.
         """
-        size = self.calculate_position_size()
+        size = self.calculate_position_size() * self.size_factor
         self.sell(size=size)
-        self.entry_price = self.data.Close[-1] # Store entry price upon selling (for short entry)
+        self.entry_price = self.data.Close[-1]

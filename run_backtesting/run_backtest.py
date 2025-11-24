@@ -17,14 +17,15 @@ from strategies.bollinger_bands import BollingerBandsStrategy
 from src.commission_models import ibkr_tiered_commission
 try:
     from strategies.private.regime_based_strategy import MLRegimeStrategy
-    from strategies.private.hmm_regime_strategy import HmmRegimeStrategy
     from strategies.private.pairs_trading_strategy import PairsTradingStrategy
     from strategies.private.meta_regime_filter_strategy import MetaRegimeFilterStrategy
+    from strategies.private.dynamic_sizing_strategy import DynamicSizingStrategy
 except ImportError:
     MLRegimeStrategy = None
     HmmRegimeStrategy = None
     PairsTradingStrategy = None
     MetaRegimeFilterStrategy = None
+    DynamicSizingStrategy = None
 
 def get_strategy_class(strategy_name: str):
     """
@@ -44,10 +45,13 @@ def get_strategy_class(strategy_name: str):
         return PairsTradingStrategy
     elif strategy_name == "meta-regime-filter" and MetaRegimeFilterStrategy:
         return MetaRegimeFilterStrategy
+    elif strategy_name == "dynamic-sizing" and DynamicSizingStrategy:
+        return DynamicSizingStrategy
     elif (strategy_name == "ml-regime" and not MLRegimeStrategy) or \
          (strategy_name == "hmm-regime" and not HmmRegimeStrategy) or \
          (strategy_name == "pairs-trading" and not PairsTradingStrategy) or \
-         (strategy_name == "meta-regime-filter" and not MetaRegimeFilterStrategy):
+         (strategy_name == "meta-regime-filter" and not MetaRegimeFilterStrategy) or \
+         (strategy_name == "dynamic-sizing" and not DynamicSizingStrategy):
         raise ImportError(f"Could not import {strategy_name}. Is the private submodule available?")
     else:
         raise ValueError(f"Unknown strategy: {strategy_name}")
@@ -118,13 +122,16 @@ def main():
     StrategyClass = get_strategy_class(args.strategy)
 
     # If it's a meta-strategy, set its parameters
-    if args.strategy == 'meta-regime-filter':
+    if args.strategy in ['meta-regime-filter', 'dynamic-sizing']:
         if not args.underlying:
-            raise ValueError("The 'meta-regime-filter' strategy requires the --underlying argument.")
+            raise ValueError(f"The '{args.strategy}' strategy requires the --underlying argument.")
         UnderlyingStrategyClass = get_strategy_class(args.underlying)
         StrategyClass.underlying_strategy = UnderlyingStrategyClass
-        StrategyClass.strategy_type = args.strategy_type
-        print(f"   with Underlying Strategy: {args.underlying} (Type: {args.strategy_type})")
+        if args.strategy == 'meta-regime-filter':
+            StrategyClass.strategy_type = args.strategy_type
+            print(f"   with Underlying Strategy: {args.underlying} (Type: {args.strategy_type})")
+        else:
+            print(f"   with Underlying Strategy: {args.underlying}")
     
     # --- 3. Run Backtest ---
     print(f"\nRunning backtest with initial cash ${args.cash:,.2f} and IBKR Tiered commission model...")
