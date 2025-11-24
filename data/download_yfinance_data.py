@@ -16,18 +16,18 @@ if __name__ == "__main__":
     START_DATE = "2010-01-01"
     END_DATE = "2023-12-31"
     
-    # --- Download GLD data ---
+    # --- Download PEP data ---
     download_data(
-        ticker="GLD",
+        ticker="PEP",
         start_date=START_DATE,
         end_date=END_DATE,
-        filepath="data/GLD_daily_2010_2023.csv"
+        filepath="data/PEP_daily_2010_2023.csv"
     )
     
-    # --- Download GDX data ---
+    # --- Download KO data ---
     download_data(
-        ticker="GDX",
+        ticker="KO",
         start_date=START_DATE,
         end_date=END_DATE,
-        filepath="data/GDX_daily_2010_2023.csv"
+        filepath="data/KO_daily_2010_2023.csv"
     )

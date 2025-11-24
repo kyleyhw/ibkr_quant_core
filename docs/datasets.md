@@ -17,24 +17,24 @@ This document provides metadata and descriptions for all datasets used in the `i
 
 ---
 
-## 2. SPDR Gold Shares (GLD)
+## 2. PepsiCo, Inc. (PEP)
 
--   **Filename:** `GLD_daily_2010_2023.csv`
+-   **Filename:** `PEP_daily_2010_2023.csv`
 -   **Source:** Downloaded from Yahoo Finance using the `yfinance` library. The script `data/download_yfinance_data.py` can be used to refresh or acquire similar datasets.
 -   **Date Range:** 2010-01-01 to 2023-12-31.
 -   **Timeframe:** 1-day bars.
--   **Description:** Daily OHLCV data for the GLD ETF, which tracks the price of gold bullion.
+-   **Description:** Daily OHLCV data for PepsiCo, Inc.
 -   **Primary Use:**
-    -   Serves as the first leg in the GLD/GDX pairs trading strategy.
+    -   Serves as the first leg in the PEP/KO pairs trading strategy.
 
 ---
 
-## 3. VanEck Gold Miners ETF (GDX)
+## 3. The Coca-Cola Company (KO)
 
--   **Filename:** `GDX_daily_2010_2023.csv`
+-   **Filename:** `KO_daily_2010_2023.csv`
 -   **Source:** Downloaded from Yahoo Finance using the `yfinance` library. The script `data/download_yfinance_data.py` can be used to refresh or acquire similar datasets.
 -   **Date Range:** 2010-01-01 to 2023-12-31.
 -   **Timeframe:** 1-day bars.
--   **Description:** Daily OHLCV data for the GDX ETF, which invests in a portfolio of gold mining companies. GDX is often highly correlated with the price of gold (GLD), making it a suitable partner for a pairs trading strategy.
+-   **Description:** Daily OHLCV data for The Coca-Cola Company. PEP and KO are classic examples of a stock pair that is highly correlated due to being in the same industry, making them a suitable candidate for a pairs trading strategy.
 -   **Primary Use:**
-    -   Serves as the second leg in the GLD/GDX pairs trading strategy.
+    -   Serves as the second leg in the PEP/KO pairs trading strategy.
