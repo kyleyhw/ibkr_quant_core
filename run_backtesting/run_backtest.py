@@ -19,10 +19,12 @@ try:
     from strategies.private.regime_based_strategy import MLRegimeStrategy
     from strategies.private.hmm_regime_strategy import HmmRegimeStrategy
     from strategies.private.pairs_trading_strategy import PairsTradingStrategy
+    from strategies.private.meta_regime_filter_strategy import MetaRegimeFilterStrategy
 except ImportError:
     MLRegimeStrategy = None
     HmmRegimeStrategy = None
     PairsTradingStrategy = None
+    MetaRegimeFilterStrategy = None
 
 def get_strategy_class(strategy_name: str):
     """
@@ -40,9 +42,12 @@ def get_strategy_class(strategy_name: str):
         return HmmRegimeStrategy
     elif strategy_name == "pairs-trading" and PairsTradingStrategy:
         return PairsTradingStrategy
+    elif strategy_name == "meta-regime-filter" and MetaRegimeFilterStrategy:
+        return MetaRegimeFilterStrategy
     elif (strategy_name == "ml-regime" and not MLRegimeStrategy) or \
          (strategy_name == "hmm-regime" and not HmmRegimeStrategy) or \
-         (strategy_name == "pairs-trading" and not PairsTradingStrategy):
+         (strategy_name == "pairs-trading" and not PairsTradingStrategy) or \
+         (strategy_name == "meta-regime-filter" and not MetaRegimeFilterStrategy):
         raise ImportError(f"Could not import {strategy_name}. Is the private submodule available?")
     else:
         raise ValueError(f"Unknown strategy: {strategy_name}")
@@ -57,6 +62,12 @@ def main():
         type=str,
         default='simple-ma-crossover',
         help='The name of the strategy class to test.'
+    )
+    parser.add_argument(
+        '--underlying',
+        type=str,
+        default=None,
+        help='The name of the underlying strategy for a meta-strategy.'
     )
     parser.add_argument(
         '--data',
@@ -98,6 +109,14 @@ def main():
     # --- 2. Select Strategy ---
     print(f"\nSelecting strategy: {args.strategy}...")
     StrategyClass = get_strategy_class(args.strategy)
+
+    # If it's a meta-strategy, set the underlying strategy
+    if args.strategy == 'meta-regime-filter':
+        if not args.underlying:
+            raise ValueError("The 'meta-regime-filter' strategy requires the --underlying argument.")
+        UnderlyingStrategyClass = get_strategy_class(args.underlying)
+        StrategyClass.underlying_strategy = UnderlyingStrategyClass
+        print(f"   with Underlying Strategy: {args.underlying}")
     
     # --- 3. Run Backtest ---
     print(f"\nRunning backtest with initial cash ${args.cash:,.2f} and IBKR Tiered commission model...")
