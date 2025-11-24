@@ -1,7 +1,7 @@
 ib_insync
 pandas
 numpy
-pandas-ta-openbb
+pandas-ta
 backtesting
 xgboost
 scikit-learn
