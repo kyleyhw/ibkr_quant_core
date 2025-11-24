@@ -115,10 +115,8 @@ def main():
     # --- 4. Determine Output Path and Generate Report ---
     print("\nGenerating plot and report...")
 
-    # Define private strategies to route their reports to the submodule
-    PRIVATE_STRATEGIES = ["ml-regime", "hmm-regime", "pairs-trading"]
-    
-    if args.strategy in PRIVATE_STRATEGIES:
+    # Dynamically determine if the strategy is private by checking its import path
+    if 'strategies.private' in StrategyClass.__module__:
         output_dir = os.path.join('strategies', 'private', 'reports')
     else:
         output_dir = 'reports'
