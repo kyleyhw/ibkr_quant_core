@@ -1,6 +1,6 @@
-# Backtest Report: bollinger-bands
+# Backtest Report: BollingerBandsStrategy
 
-**Run Date:** 2025-11-24 23:06:25
+**Run Date:** 2025-11-24 23:38:51
 
 ## Strategy Parameters
 
@@ -41,4 +41,4 @@
 | Kelly Criterion        | 0.0725404733819126   |
 
 ## Equity Curve & Trades
-[View interactive plot](backtest_bollinger-bands_20251124_230624.html)
+[View interactive plot](backtest_BollingerBandsStrategy_20251124_233851.html)

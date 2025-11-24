@@ -1,6 +1,6 @@
-# Backtest Report: simple-ma-crossover
+# Backtest Report: SimpleMACrossover
 
-**Run Date:** 2025-11-24 23:06:18
+**Run Date:** 2025-11-24 23:38:21
 
 ## Strategy Parameters
 
@@ -41,4 +41,4 @@
 | Kelly Criterion        | -0.13548093774266934  |
 
 ## Equity Curve & Trades
-[View interactive plot](backtest_simple-ma-crossover_20251124_230618.html)
+[View interactive plot](backtest_SimpleMACrossover_20251124_233821.html)

@@ -1,6 +1,6 @@
-# Backtest Report: rsi-2-period
+# Backtest Report: RSI2PeriodStrategy
 
-**Run Date:** 2025-11-24 23:13:20
+**Run Date:** 2025-11-24 23:38:43
 
 ## Strategy Parameters
 
@@ -41,4 +41,4 @@
 | Kelly Criterion        | -0.3409788036869487  |
 
 ## Equity Curve & Trades
-[View interactive plot](backtest_rsi-2-period_20251124_231320.html)
+[View interactive plot](backtest_RSI2PeriodStrategy_20251124_233843.html)

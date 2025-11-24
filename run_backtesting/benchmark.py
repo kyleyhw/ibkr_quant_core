@@ -1,108 +1,167 @@
-
 import pandas as pd
-from backtesting import Backtest
+from backtesting import Backtest, Strategy
 import os
 import sys
 import argparse
+import importlib
+import inspect
 from datetime import datetime
+from pathlib import Path
 
 # --- Add project root to path ---
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# --- Import all strategies ---
-from strategies.simple_ma_crossover import SimpleMACrossover
-from strategies.rsi_2_period import RSI2PeriodStrategy
-from strategies.bollinger_bands import BollingerBandsStrategy
 from src.commission_models import ibkr_tiered_commission
+from strategies.base_strategy import BaseStrategy
 
-try:
-    from strategies.private.private_strategies.regime_based_strategy import MLRegimeStrategy
-    from strategies.private.private_strategies.hmm_regime_strategy import HmmRegimeStrategy
-    from strategies.private.private_strategies.pairs_trading_strategy import PairsTradingStrategy
-    from strategies.private.private_strategies.meta_regime_filter_strategy import MetaRegimeFilterStrategy
-    from strategies.private.private_strategies.dynamic_sizing_strategy import DynamicSizingStrategy
-    PRIVATE_STRATEGIES_AVAILABLE = True
-except ImportError:
-    PRIVATE_STRATEGIES_AVAILABLE = False
-    print("Warning: Private strategies not found. Running benchmark on public strategies only.")
+# --- Configuration for data and meta-strategies ---
+# This allows us to map specific data files to strategies by name
+# and define which meta-strategies should run with which underlying strategies.
+STRATEGY_CONFIG = {
+    "PairsTradingStrategy": {"data": "data/PEP_KO_daily_2010_2023_formatted.csv"},
+    "MetaRegimeFilterStrategy": {
+        "underlying": "SimpleMACrossover",
+        "params": {"strategy_type": "trend"}
+    },
+    "DynamicSizingStrategy": {
+        "underlying": "BollingerBandsStrategy",
+        "params": {}
+    }
+}
+DEFAULT_DATA = "data/SPY_1hour_1year.csv"
 
-# --- Strategy and Data Configuration ---
-STANDALONE_STRATEGIES = [
-    {"name": "Simple MA Crossover", "class": SimpleMACrossover, "data": "data/SPY_1hour_1year.csv", "scope": "public"},
-    {"name": "RSI(2) Strategy", "class": RSI2PeriodStrategy, "data": "data/SPY_1hour_1year.csv", "scope": "public"},
-    {"name": "Bollinger Bands", "class": BollingerBandsStrategy, "data": "data/SPY_1hour_1year.csv", "scope": "public"},
-]
 
-META_STRATEGIES = []
+def discover_strategies():
+    """Dynamically discovers and imports strategies from the project directories."""
+    strategies = {"standalone": [], "meta": {}}
+    
+    # Define search paths for public and private strategies
+    public_path = Path(project_root) / 'strategies'
+    private_path = public_path / 'private' / 'private_strategies'
+    search_paths = [public_path]
+    
+    private_strategies_available = private_path.exists() and any(private_path.iterdir())
+    if private_strategies_available:
+        search_paths.append(private_path)
+    else:
+        print("Warning: Private strategies not found. Running benchmark on public strategies only.")
 
-if PRIVATE_STRATEGIES_AVAILABLE:
-    STANDALONE_STRATEGIES.extend([
-        {"name": "ML Regime (XGBoost)", "class": MLRegimeStrategy, "data": "data/SPY_1hour_1year.csv", "scope": "private"},
-        {"name": "HMM Regime", "class": HmmRegimeStrategy, "data": "data/SPY_1hour_1year.csv", "scope": "private"},
-        {"name": "Pairs Trading (PEP/KO)", "class": PairsTradingStrategy, "data": "data/PEP_KO_daily_2010_2023_formatted.csv", "scope": "private"},
-    ])
-    META_STRATEGIES.extend([
-        {
-            "name": "Meta Filter (Trend)", 
-            "class": MetaRegimeFilterStrategy, 
-            "underlying": SimpleMACrossover,
-            "underlying_name": "Simple MA Crossover",
-            "params": {"strategy_type": "trend"},
-            "data": "data/SPY_1hour_1year.csv",
-            "scope": "private"
-        },
-        {
-            "name": "Dynamic Sizing (Bollinger)", 
-            "class": DynamicSizingStrategy, 
-            "underlying": BollingerBandsStrategy,
-            "underlying_name": "Bollinger Bands",
-            "params": {},
-            "data": "data/SPY_1hour_1year.csv",
-            "scope": "private"
-        },
-    ])
+    for path in search_paths:
+        for file in path.glob('*.py'):
+            if file.name.startswith(('__init__', 'base_', 'pairs_')):
+                continue
+
+            module_name = f"{path.relative_to(Path(project_root)).as_posix().replace('/', '.')}.{file.stem}"
+            
+            try:
+                module = importlib.import_module(module_name)
+                for name, obj in inspect.getmembers(module, inspect.isclass):
+                    # Check if it's a valid, non-base strategy class
+                    if issubclass(obj, (Strategy, BaseStrategy)) and obj not in (Strategy, BaseStrategy):
+                        scope = "private" if "private_strategies" in module_name else "public"
+                        
+                        # Check if it's a meta-strategy (designed to wrap another)
+                        # We identify meta-strategies by looking for an 'underlying_strategy' parameter
+                        # in their __init__ method.
+                        is_meta = hasattr(obj, 'underlying_strategy')
+
+                        config = {
+                            "name": name,
+                            "class": obj,
+                            "data": STRATEGY_CONFIG.get(name, {}).get("data", DEFAULT_DATA),
+                            "scope": scope
+                        }
+                        
+                        if is_meta:
+                            strategies["meta"][name] = config
+                        else:
+                            strategies["standalone"].append(config)
+            except ImportError as e:
+                print(f"Error importing module {module_name}: {e}")
+
+    # Link meta-strategies to their underlying standalone strategies
+    linked_meta_strategies = []
+    for meta_name, meta_config in strategies["meta"].items():
+        if meta_name in STRATEGY_CONFIG:
+            underlying_name = STRATEGY_CONFIG[meta_name]["underlying"]
+            
+            # Find the standalone strategy class
+            underlying_class = next((s["class"] for s in strategies["standalone"] if s["name"] == underlying_name), None)
+            
+            if underlying_class:
+                linked_config = meta_config.copy()
+                linked_config["underlying"] = underlying_class
+                linked_config["underlying_name"] = underlying_name
+                linked_config["params"] = STRATEGY_CONFIG[meta_name].get("params", {})
+                # Keep original name for config lookup, but use a more descriptive name for reports
+                linked_config["report_name"] = f"{meta_name} ({underlying_name})"
+                linked_meta_strategies.append(linked_config)
+            else:
+                print(f"Warning: Underlying strategy '{underlying_name}' not found for meta-strategy '{meta_name}'.")
+
+    return strategies["standalone"], linked_meta_strategies
+
 
 def run_benchmark(scope: str):
+    """Runs a benchmark for the specified scope of strategies."""
     results = []
-    
-    # Filter strategies
+    standalone_strategies, meta_strategies = discover_strategies()
+
+    # Filter strategies based on the selected scope
     if scope == 'all':
-        strategies_to_run = STANDALONE_STRATEGIES + META_STRATEGIES
+        strategies_to_run = standalone_strategies + meta_strategies
+    elif scope == 'public':
+        strategies_to_run = [s for s in standalone_strategies if s['scope'] == 'public']
+    elif scope == 'private':
+        strategies_to_run = [s for s in standalone_strategies if s['scope'] == 'private'] + meta_strategies
     else:
-        strategies_to_run = [s for s in STANDALONE_STRATEGIES if s['scope'] == scope]
-        if scope == 'private':
-            strategies_to_run += META_STRATEGIES
+        strategies_to_run = []
 
     for config in strategies_to_run:
-        strategy_name = config["name"]
+        strategy_name = config.get("report_name", config["name"])
         strategy_class = config["class"]
         
         print(f"\n--- Benchmarking Strategy: {strategy_name} ---")
         
         # --- Load Data ---
-        data = pd.read_csv(config["data"])
-        data['date'] = pd.to_datetime(data['date'])
-        data = data.set_index('date')
+        try:
+            data = pd.read_csv(config["data"])
+            # Standardize date parsing and make timezone-naive
+            data['date'] = pd.to_datetime(data['date'], utc=True)
+            data = data.set_index('date')
+            if isinstance(data.index, pd.DatetimeIndex):
+                 data.index = data.index.tz_localize(None)
+        except FileNotFoundError:
+            print(f"Warning: Data file not found at {config['data']}. Skipping {strategy_name}.")
+            continue
+        except Exception as e:
+            print(f"Error loading data for {strategy_name}: {e}. Skipping.")
+            continue
         
-        if isinstance(data.index, pd.DatetimeIndex) and data.index.tz is not None:
-            data.index = data.index.tz_localize(None)
+        # Standardize column names
         data.columns = [col.capitalize() for col in data.columns]
         
         # --- Handle Meta-Strategies ---
         if 'underlying' in config:
+            # Set the underlying strategy and other params on the class itself
             strategy_class.underlying_strategy = config['underlying']
-            for param, value in config['params'].items():
+            for param, value in config.get('params', {}).items():
                 setattr(strategy_class, param, value)
-
-        bt = Backtest(data, strategy_class, cash=10000, commission=ibkr_tiered_commission)
-        stats = bt.run()
+            
+            bt = Backtest(data, strategy_class, cash=100_000, commission=ibkr_tiered_commission)
+            stats = bt.run()
+        else:
+            bt = Backtest(data, strategy_class, cash=100_000, commission=ibkr_tiered_commission)
+            stats = bt.run()
         
         key_metrics = {
             "Strategy": strategy_name,
-            "Return [%]": stats["Return [%]"], "Sharpe Ratio": stats["Sharpe Ratio"],
-            "Max. Drawdown [%]": stats["Max. Drawdown [%]"], "Win Rate [%]": stats["Win Rate [%]"],
+            "Return [%]": stats["Return [%]"],
+            "Sharpe Ratio": stats["Sharpe Ratio"],
+            "Max. Drawdown [%]": stats["Max. Drawdown [%]"],
+            "Win Rate [%]": stats["Win Rate [%]"],
             "# Trades": stats["# Trades"]
         }
         results.append(key_metrics)
@@ -113,9 +172,15 @@ def run_benchmark(scope: str):
         return
         
     print(f"\n--- Generating {scope.capitalize()} Benchmark Report ---")
-    results_df = pd.DataFrame(results).sort_values(by="Sharpe Ratio", ascending=False)
+    results_df = pd.DataFrame(results).sort_values(by="Sharpe Ratio", ascending=False).round(2)
     
-    output_dir = 'reports' if scope == 'public' else os.path.join('strategies', 'private', 'reports')
+    # Determine output directory
+    output_dir = 'reports'
+    if scope == 'private' or (scope == 'all' and any(s['scope'] == 'private' for s in strategies_to_run)):
+        private_reports_dir = os.path.join('strategies', 'private', 'reports')
+        if os.path.exists(os.path.dirname(private_reports_dir)):
+             output_dir = private_reports_dir
+    
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

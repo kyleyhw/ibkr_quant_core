@@ -1,5 +1,5 @@
 import pandas as pd
-from backtesting import Backtest
+from backtesting import Backtest, Strategy
 import argparse
 import importlib
 import sys
@@ -11,61 +11,56 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from strategies.simple_ma_crossover import SimpleMACrossover
-from strategies.rsi_2_period import RSI2PeriodStrategy
-from strategies.bollinger_bands import BollingerBandsStrategy
+from strategies.base_strategy import BaseStrategy
 from src.commission_models import ibkr_tiered_commission
-try:
-    from strategies.private.private_strategies.regime_based_strategy import MLRegimeStrategy
-    from strategies.private.private_strategies.hmm_regime_strategy import HmmRegimeStrategy
-    from strategies.private.private_strategies.pairs_trading_strategy import PairsTradingStrategy
-    from strategies.private.private_strategies.meta_regime_filter_strategy import MetaRegimeFilterStrategy
-    from strategies.private.private_strategies.dynamic_sizing_strategy import DynamicSizingStrategy
-except ImportError:
-    MLRegimeStrategy = None
-    HmmRegimeStrategy = None
-    PairsTradingStrategy = None
-    MetaRegimeFilterStrategy = None
-    DynamicSizingStrategy = None
+from pathlib import Path
+import inspect
 
-def get_strategy_class(strategy_name: str):
-    """
-    Dynamically imports and returns a strategy class from a given name.
-    """
-    if strategy_name == "simple-ma-crossover":
-        return SimpleMACrossover
-    elif strategy_name == "rsi-2-period":
-        return RSI2PeriodStrategy
-    elif strategy_name == "bollinger-bands":
-        return BollingerBandsStrategy
-    elif strategy_name == "ml-regime" and MLRegimeStrategy:
-        return MLRegimeStrategy
-    elif strategy_name == "hmm-regime" and HmmRegimeStrategy:
-        return HmmRegimeStrategy
-    elif strategy_name == "pairs-trading" and PairsTradingStrategy:
-        return PairsTradingStrategy
-    elif strategy_name == "meta-regime-filter" and MetaRegimeFilterStrategy:
-        return MetaRegimeFilterStrategy
-    elif strategy_name == "dynamic-sizing" and DynamicSizingStrategy:
-        return DynamicSizingStrategy
-    elif (strategy_name == "ml-regime" and not MLRegimeStrategy) or \
-         (strategy_name == "hmm-regime" and not HmmRegimeStrategy) or \
-         (strategy_name == "pairs-trading" and not PairsTradingStrategy) or \
-         (strategy_name == "meta-regime-filter" and not MetaRegimeFilterStrategy) or \
-         (strategy_name == "dynamic-sizing" and not DynamicSizingStrategy):
-        raise ImportError(f"Could not import {strategy_name}. Is the private submodule available?")
-    else:
-        raise ValueError(f"Unknown strategy: {strategy_name}")
+def discover_strategies() -> dict:
+    """Dynamically discovers and imports all available strategies."""
+    strategies = {}
+    
+    public_path = Path(project_root) / 'strategies'
+    private_path = public_path / 'private' / 'private_strategies'
+    search_paths = [public_path]
+    
+    if private_path.exists() and any(private_path.iterdir()):
+        search_paths.append(private_path)
+
+    for path in search_paths:
+        for file in path.glob('*.py'):
+            if file.name.startswith(('__init__', 'base_')):
+                continue
+
+            module_name = f"{path.relative_to(Path(project_root)).as_posix().replace('/', '.')}.{file.stem}"
+            
+            try:
+                module = importlib.import_module(module_name)
+                for name, obj in inspect.getmembers(module, inspect.isclass):
+                    if issubclass(obj, (Strategy, BaseStrategy)) and obj not in (Strategy, BaseStrategy):
+                        strategies[name] = obj
+            except ImportError as e:
+                print(f"Could not import {module_name}: {e}")
+    return strategies
+
+def get_strategy_class(strategy_name: str, all_strategies: dict):
+    """Returns the strategy class from the discovered strategies."""
+    if strategy_name not in all_strategies:
+        raise ValueError(f"Unknown strategy: {strategy_name}. Available strategies are: {', '.join(all_strategies.keys())}")
+    return all_strategies[strategy_name]
 
 def main():
     """
     Runs a backtest for a single strategy.
     """
+    all_strategies = discover_strategies()
+    
     parser = argparse.ArgumentParser(description="Run a backtest for a given strategy.")
     parser.add_argument(
         '--strategy',
         type=str,
-        default='simple-ma-crossover',
+        required=True,
+        choices=list(all_strategies.keys()),
         help='The name of the strategy class to test.'
     )
     parser.add_argument(
@@ -120,15 +115,17 @@ def main():
 
     # --- 2. Select Strategy ---
     print(f"\nSelecting strategy: {args.strategy}...")
-    StrategyClass = get_strategy_class(args.strategy)
+    StrategyClass = get_strategy_class(args.strategy, all_strategies)
 
     # If it's a meta-strategy, set its parameters
-    if args.strategy in ['meta-regime-filter', 'dynamic-sizing']:
+    if hasattr(StrategyClass, 'underlying_strategy'):
         if not args.underlying:
             raise ValueError(f"The '{args.strategy}' strategy requires the --underlying argument.")
-        UnderlyingStrategyClass = get_strategy_class(args.underlying)
+        UnderlyingStrategyClass = get_strategy_class(args.underlying, all_strategies)
         StrategyClass.underlying_strategy = UnderlyingStrategyClass
-        if args.strategy == 'meta-regime-filter':
+        
+        # Check if strategy_type is a parameter for the meta-strategy and set it
+        if hasattr(StrategyClass, 'strategy_type'):
             StrategyClass.strategy_type = args.strategy_type
             print(f"   with Underlying Strategy: {args.underlying} (Type: {args.strategy_type})")
         else:
